@@ -20,6 +20,7 @@ Throghout the development of my work, I used and cited all of these, even if jus
  - ImageNet
  - Adam
  - Optuna
+ - Early-Stopping
 
 ### Ensembles 
 
@@ -35,7 +36,18 @@ Throghout the development of my work, I used and cited all of these, even if jus
 ### Classification vs Segmentation
 
 
+### Architectural Inspiration
+
+
+ - **`Comparison_of_CNNs_for_Lung_Biopsy_Images_Classification`** (4 cnns, with different ds sizes as well)
+ - **`Lung_Pattern_Classification_for_Interstitial_Lung_Diseases_Using_a_Deep_Convolutional_Neural_Network`** (new evaluation metric, need to learn about it before using. Uses LeakyReLU and different hyperparameter combinations)
+ - **``**
+
 # Dataset Issues
+
+#### Data Normalization
+
+ - HU normalization
 
 #### Image Preprocessing
 
@@ -64,7 +76,6 @@ This pdf citation might be useful:
 
 #### Imbalanced Classes
 
-#### Data Normalization
 
 
 # Results
