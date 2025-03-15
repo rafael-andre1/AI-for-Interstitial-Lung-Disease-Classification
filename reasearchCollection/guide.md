@@ -74,8 +74,55 @@ This pdf citation might be useful:
 
 "Optimization has been provided by Adam, and activation has been provided by ReLU. The initial learning rate has been chosen as 0.0003, and cross-entropy loss has been computed to update the weights in the training phase. The number of epochs and mini-batch size have been set as 6 and 10, respectively."
 
-#### Imbalanced Classes
 
+**After analysis of the augmentation options:**
+###### *"The ideal augmentation methods should provide high classification accuracy, sensitivity, specificity, F1-score, and MCC while also significantly increasing the number of training samples. These choices should balance strong classification performance and dataset growth, which enhancing model robustness and generalization."*
+
+1. **9th Augmentation Method (Translation and Shearing)**
+   - **Performance:** Highest accuracy (85.74%), high sensitivity (86.16%), excellent specificity (97.65%), strong F1-score (84.35%), and highest MCC (82.81%).
+   - **Dataset Expansion:** Increases dataset by **10x**.
+
+2. **10th Augmentation Method (Translation, Shearing, and Rotation)**
+   - **Performance:** Second highest accuracy (83.82%), high sensitivity (84.83%), excellent specificity (96.29%), strong F1-score (82.24%), and high MCC (81.24%).
+   - **Dataset Expansion:** Increases dataset by **10x**.
+
+3. **4th Augmentation Method (Gaussian Noise Addition)**
+   - **Performance:** High accuracy (84.12%), high sensitivity (85.10%), excellent specificity (96.11%), strong F1-score (83.15%), and high MCC (81.62%).
+   - **Dataset Expansion:** Increases dataset by **3x**.
+
+4. **7th Augmentation Method (Gaussian Noise Addition and Rotation)**
+   - **Performance:** Good accuracy (75.00%), high sensitivity (83.38%), decent specificity (76.67%), strong F1-score (76.92%), and moderate MCC (54.71%).
+   - **Dataset Expansion:** Increases dataset by **30x**.
+
+5. **6th Augmentation Method (Salt and Pepper Noise Addition and Shearing)**
+   - **Performance:** Moderate accuracy (62.38%) but excellent specificity (93.76%), making it useful for reducing false positives.
+   - **Dataset Expansion:** Increases dataset by **30x**.
+
+#### Elaborating on choices (AI for format and summarize)
+
+1. **Translation and Shearing (9th method)**
+   - **What it does:** Moves (translates) the image in different directions and skews (shears) it.  
+   - **Why it’s good:** Simulates real-world variations in CT scans due to patient positioning and scanner angle changes. It also had the **best classification performance**.  
+
+2. **Translation, Shearing, and Rotation (10th method)**  
+   - **What it does:** Combines translation, shearing, and rotation to modify orientation.  
+   - **Why it’s good:** Introduces diverse spatial transformations, making the model robust to patient movement and scanner variability. Achieved **second-best classification performance**.  
+
+3. **Gaussian Noise Addition (4th method)**  
+   - **What it does:** Adds small random noise that mimics scanner artifacts.  
+   - **Why it’s good:** Helps the model generalize by reducing overfitting to noise-free images. It provided **high classification accuracy**.  
+
+4. **Gaussian Noise Addition and Rotation (7th method)**  
+   - **What it does:** Introduces noise (as in the 4th method) and rotates images.  
+   - **Why it’s good:** Enhances robustness to both scanner artifacts and slight rotations due to patient positioning. Also **expands the dataset significantly (30x)**.  
+
+5. **Salt and Pepper Noise Addition and Shearing (6th method)**  
+   - **What it does:** Adds random black-and-white noise (salt & pepper) and applies shearing.  
+   - **Why it’s good:** Simulates imaging artifacts and distortions seen in medical scans. **Largest dataset expansion (30x), helping model learn better**.  
+
+
+
+#### Imbalanced Classes
 
 
 # Results
