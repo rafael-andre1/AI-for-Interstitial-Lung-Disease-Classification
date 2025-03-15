@@ -1,0 +1,2 @@
+ - [HU Normalization, by Aadhav Vignesh](https://www.kaggle.com/code/aadhavvignesh/lung-segmentation-by-marker-controlled-watershed#Hounsfield-Units)
+ - [Augmentation Methods](https://doi.org/10.1007/s10462-023-10453-z)

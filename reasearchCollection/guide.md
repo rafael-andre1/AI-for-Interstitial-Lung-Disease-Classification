@@ -67,7 +67,7 @@ Throghout the development of my work, I used and cited all of these, even if jus
 
  - Article related to data augmentation options, uses the LIDC-IDRI (and others, pg27 of the pdf) dataset to apply 11 different methods, comparing their performance after classification
  - Uses ResNet to prove effectiveness of said augmentations, allows me to justify choice of augmentation method
- - Includes number of images that result from a single image's augmenttion, very useful for preliminary dataset size analysis
+ - Includes number of images that result from a single image's augmentation, very useful for preliminary dataset size analysis
  - **`Ideas`**: method ideas for my dataset, maybe comparing performance difference regarding LIDC-IDRI obtained results (only relative, as in if the best methods are the same for both datasets)
 
 This pdf citation might be useful:
