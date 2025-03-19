@@ -93,10 +93,33 @@ This pdf citation might be useful:
 4. **7th Augmentation Method (Gaussian Noise Addition and Rotation)**
    - **Performance:** Good accuracy (75.00%), high sensitivity (83.38%), decent specificity (76.67%), strong F1-score (76.92%), and moderate MCC (54.71%).
    - **Dataset Expansion:** Increases dataset by **30x**.
+  
+In order to implement, I can use:
 
-5. **6th Augmentation Method (Salt and Pepper Noise Addition and Shearing)**
-   - **Performance:** Moderate accuracy (62.38%) but excellent specificity (93.76%), making it useful for reducing false positives.
-   - **Dataset Expansion:** Increases dataset by **30x**.
+
+1. **Shearing**  
+   - `Albumentations` (`A.ShiftScaleRotate(shift_limit=0, scale_limit=0, rotate_limit=0, shear_limit=value)`)  
+   - `OpenCV` (via `cv2.getAffineTransform()` and `cv2.warpAffine()`)
+
+2. **Rotation**  
+   - `Albumentations` (`A.ShiftScaleRotate(rotate_limit=angle)`)  
+   - `OpenCV` (`cv2.getRotationMatrix2D()` and `cv2.warpAffine()`)  
+   - `scipy.ndimage` (`scipy.ndimage.rotate()`)
+
+3. **Translation (Shifting images)**  
+   - `Albumentations` (`A.ShiftScaleRotate(shift_limit=value)`)  
+   - `OpenCV` (`cv2.warpAffine()` with translation matrix)
+
+4. **Gaussian Noise**  
+   - `NumPy` (manual: `image + np.random.normal(mean, std, image.shape)`)  
+
+### **Best Choices by Ease of Use and Performance:**
+- **For general image augmentation with many transformations** → `Albumentations`
+- **For fine control over geometric transformations** → `imgaug`
+- **For custom implementations & speed** → `OpenCV`  
+- **For quick and simple noise addition** → `NumPy`  
+
+<br>
 
 #### Elaborating on choices (AI for format and summarize)
 
