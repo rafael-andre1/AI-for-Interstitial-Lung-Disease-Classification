@@ -1,0 +1,63 @@
+Study: 1.2.840.113704.1.111.4884.1077207552.1
+Series: 1.2.840.113704.1.111.4884.1077207887.13
+SpacingX: 0.833984375
+SpacingY: 0.833984375
+SpacingZ: 10.0
+
+label: bronchiectasis
+--------------------------
+localisation: non-relevant
+
+slice_number: 9
+nb_points_on_contour: 124
+
+slice_number: 11
+nb_points_on_contour: 74
+nb_points_on_contour: 65
+
+slice_number: 12
+nb_points_on_contour: 160
+nb_points_on_contour: 57
+
+-------------------------
+
+# ----- As I was told to assume, from here on out, only those below have fibrosis
+
+label: fibrosis
+localisation: diffuse
+slice_number: 3
+nb_points_on_contour: 124
+
+slice_number: 4
+nb_points_on_contour: 218
+
+slice_number: 5
+nb_points_on_contour: 106
+
+slice_number: 8
+nb_points_on_contour: 237
+
+slice_number: 9
+nb_points_on_contour: 280
+
+slice_number: 10
+nb_points_on_contour: 305
+nb_points_on_contour: 324
+
+slice_number: 11
+nb_points_on_contour: 231
+
+slice_number: 13
+nb_points_on_contour: 305
+nb_points_on_contour: 252
+
+slice_number: 14
+nb_points_on_contour: 279
+nb_points_on_contour: 400
+
+slice_number: 15
+nb_points_on_contour: 252
+nb_points_on_contour: 137
+
+
+# ----- So, in this case, slice12 shoud not portray fibrosis. 
