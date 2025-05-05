@@ -2,32 +2,19 @@
 
 Representa a ordem pela qual penso fazer o sugerido.
 
-## Desenvolvimento do Report
+No dia 05/05:
 
-### Introdução
-
- 1. Incluir objetivos do estágio em tópicos (fazer só no final para ter tudo certinho).
- 2. Falar mais sobre o conceito de fibrose, especialmente dos casos em que agreguei manifestações, e caso faça **<a href="#fibrosis_types" style="color: green; text-decoration: none;">separação do tipo de fibrose</a>**, mencionar os tipos encontrados/separados.
- 3. Para referências, posso seguir o método que me indicaram hoje, copiar do google scholar, incluir no ficheiro `.bib` do Overleaf e aplicar a referência em LaTeX.
-
-### Estado da Arte
-
-Ver projetos que citem o meu dataset (MEDGIFT) e que executem classificação (os que fazem a mesma coisa que eu) para eu provar que não fiz algo irrelevante.
-
-### Descrição da Base de Dados
-
-Devo fazer uma explicação mais profunda do tipo de dados, nº de pacientes e scans, o tipo de divisão que fiz nos splits, as manifestações que considerei como fibrose, etc.
-
-### Metodologia
-
-Elaborar metodologia de Redes usadas, treino, avaliação, etc.
+ - Falta receber confirmação de qual método devo usar em "modelo com a melhor loss validation"
+ - Falta teste de "resize before augmentations"
+ - Falta implementar ideia de agregação de resultados, bem como escolha de critérios
+ - Decidi deixar agregação de resultados por features da última camada convolucional para o final (bastante complexo)
 
 ## Fine-Tune da ResNet
 
- 1. Aplicar métodos de verificação de **rede com a melhor validation loss**, que substitui aquela que é exportada para o return. Posso precisar de **medidas de verificação de diferença entre melhoria da loss de treino e validação**, por exemplo, se a loss de treino estiver a baixar muito mais rapidamente do que a loss de validação ou se estiver com valores muito baixos então não pode ser considerada como a melhor.
+ 1. Aplicar métodos de verificação de **rede com a melhor validation loss**, que substitui aquela que é exportada para o return. Posso precisar de **medidas de verificação de diferença entre melhoria da loss de treino e validação**, por exemplo, se a loss de treino estiver a baixar muito mais rapidamente do que a loss de validação ou se estiver com valores muito baixos então não pode ser considerada como a melhor. ✅(needs verification!!!)
  2. **Descongelar** grande parte das camadas da ResNet pode permitir atualização de pesos a um nível mais específico ao dataset em questão.
  3. **Adicionar métricas** e melhorar a sua análise, bem como **fazer ROC e AUC para o teste** na fase de performance evaluation (threshold continua a ser feita com o split de validação)
- 4. Fazer **resize dos tensors antes de aplicar as augemntations** pode implicar alguma perda de qualidade mas deve reduzir consideravelmente o tempo de execução do treino.
+ 4. Fazer **resize dos tensors antes de aplicar as augemntations** pode implicar alguma perda de qualidade mas deve reduzir consideravelmente o tempo de execução do treino.✅
 
 ## Agregação de Resultados
 
@@ -79,4 +66,26 @@ A classificação, dado que o modelo não está treinado para detetar fibrose, s
 ### <span style="color: red">Questão</span>
 
 Neste caso não existe treino, devo pegar em por exemplo 80% do dataset para definir o critério com base nas features e avaliar a performance do mesmo nos restantes 20%?
+
+## Desenvolvimento do Report
+
+### Introdução
+
+ 1. Incluir objetivos do estágio em tópicos (fazer só no final para ter tudo certinho).
+ 2. Falar mais sobre o conceito de fibrose, especialmente dos casos em que agreguei manifestações, e caso faça **<a href="#fibrosis_types" style="color: green; text-decoration: none;">separação do tipo de fibrose</a>**, mencionar os tipos encontrados/separados.
+ 3. Para referências, posso seguir o método que me indicaram hoje, copiar do google scholar, incluir no ficheiro `.bib` do Overleaf e aplicar a referência em LaTeX.
+
+### Estado da Arte
+
+Ver projetos que citem o meu dataset (MEDGIFT) e que executem classificação (os que fazem a mesma coisa que eu) para eu provar que não fiz algo irrelevante.
+
+### Descrição da Base de Dados
+
+Devo fazer uma explicação mais profunda do tipo de dados, nº de pacientes e scans, o tipo de divisão que fiz nos splits, as manifestações que considerei como fibrose, etc.
+
+### Metodologia
+
+Elaborar metodologia de Redes usadas, treino, avaliação, etc.
+
+
 

@@ -26,25 +26,19 @@
       
 <h1 id="lista-reunião-3004">Lista (Reunião 30/04) </h1>
 <p>Representa a ordem pela qual penso fazer o sugerido.</p>
-<h2 id="desenvolvimento-do-report">Desenvolvimento do Report </h2>
-<h3 id="introdução">Introdução </h3>
-<ol>
-<li>Incluir objetivos do estágio em tópicos (fazer só no final para ter tudo certinho).</li>
-<li>Falar mais sobre o conceito de fibrose, especialmente dos casos em que agreguei manifestações, e caso faça <strong><a href="#fibrosis_types" style="color: green; text-decoration: none;">separação do tipo de fibrose</a></strong>, mencionar os tipos encontrados/separados.</li>
-<li>Para referências, posso seguir o método que me indicaram hoje, copiar do google scholar, incluir no ficheiro <code>.bib</code> do Overleaf e aplicar a referência em LaTeX.</li>
-</ol>
-<h3 id="estado-da-arte">Estado da Arte </h3>
-<p>Ver projetos que citem o meu dataset (MEDGIFT) e que executem classificação (os que fazem a mesma coisa que eu) para eu provar que não fiz algo irrelevante.</p>
-<h3 id="descrição-da-base-de-dados">Descrição da Base de Dados </h3>
-<p>Devo fazer uma explicação mais profunda do tipo de dados, nº de pacientes e scans, o tipo de divisão que fiz nos splits, as manifestações que considerei como fibrose, etc.</p>
-<h3 id="metodologia">Metodologia </h3>
-<p>Elaborar metodologia de Redes usadas, treino, avaliação, etc.</p>
+<p>No dia 05/05:</p>
+<ul>
+<li>Falta receber confirmação de qual método devo usar em "modelo com a melhor loss validation"</li>
+<li>Falta teste de "resize before augmentations"</li>
+<li>Falta implementar ideia de agregação de resultados, bem como escolha de critérios</li>
+<li>Decidi deixar agregação de resultados por features da última camada convolucional para o final (bastante complexo)</li>
+</ul>
 <h2 id="fine-tune-da-resnet">Fine-Tune da ResNet </h2>
 <ol>
-<li>Aplicar métodos de verificação de <strong>rede com a melhor validation loss</strong>, que substitui aquela que é exportada para o return. Posso precisar de <strong>medidas de verificação de diferença entre melhoria da loss de treino e validação</strong>, por exemplo, se a loss de treino estiver a baixar muito mais rapidamente do que a loss de validação ou se estiver com valores muito baixos então não pode ser considerada como a melhor.</li>
+<li>Aplicar métodos de verificação de <strong>rede com a melhor validation loss</strong>, que substitui aquela que é exportada para o return. Posso precisar de <strong>medidas de verificação de diferença entre melhoria da loss de treino e validação</strong>, por exemplo, se a loss de treino estiver a baixar muito mais rapidamente do que a loss de validação ou se estiver com valores muito baixos então não pode ser considerada como a melhor. ✅(needs verification!!!)</li>
 <li><strong>Descongelar</strong> grande parte das camadas da ResNet pode permitir atualização de pesos a um nível mais específico ao dataset em questão.</li>
 <li><strong>Adicionar métricas</strong> e melhorar a sua análise, bem como <strong>fazer ROC e AUC para o teste</strong> na fase de performance evaluation (threshold continua a ser feita com o split de validação)</li>
-<li>Fazer <strong>resize dos tensors antes de aplicar as augemntations</strong> pode implicar alguma perda de qualidade mas deve reduzir consideravelmente o tempo de execução do treino.</li>
+<li>Fazer <strong>resize dos tensors antes de aplicar as augemntations</strong> pode implicar alguma perda de qualidade mas deve reduzir consideravelmente o tempo de execução do treino.✅</li>
 </ol>
 <h2 id="agregação-de-resultados">Agregação de Resultados </h2>
 <p>Consiste em combinar os resultados obtidos pela ResNet. Isto pode ser feito tanto a nível de resultados de probabilidades como resultado de features.</p>
@@ -75,6 +69,19 @@ O importante para este conceito é que requer um modelo bem elaborado, algo com 
 </ol>
 <h3 id="span-stylecolor-redquestãospan"><span style="color: red">Questão</span> </h3>
 <p>Neste caso não existe treino, devo pegar em por exemplo 80% do dataset para definir o critério com base nas features e avaliar a performance do mesmo nos restantes 20%?</p>
+<h2 id="desenvolvimento-do-report">Desenvolvimento do Report </h2>
+<h3 id="introdução">Introdução </h3>
+<ol>
+<li>Incluir objetivos do estágio em tópicos (fazer só no final para ter tudo certinho).</li>
+<li>Falar mais sobre o conceito de fibrose, especialmente dos casos em que agreguei manifestações, e caso faça <strong><a href="#fibrosis_types" style="color: green; text-decoration: none;">separação do tipo de fibrose</a></strong>, mencionar os tipos encontrados/separados.</li>
+<li>Para referências, posso seguir o método que me indicaram hoje, copiar do google scholar, incluir no ficheiro <code>.bib</code> do Overleaf e aplicar a referência em LaTeX.</li>
+</ol>
+<h3 id="estado-da-arte">Estado da Arte </h3>
+<p>Ver projetos que citem o meu dataset (MEDGIFT) e que executem classificação (os que fazem a mesma coisa que eu) para eu provar que não fiz algo irrelevante.</p>
+<h3 id="descrição-da-base-de-dados">Descrição da Base de Dados </h3>
+<p>Devo fazer uma explicação mais profunda do tipo de dados, nº de pacientes e scans, o tipo de divisão que fiz nos splits, as manifestações que considerei como fibrose, etc.</p>
+<h3 id="metodologia">Metodologia </h3>
+<p>Elaborar metodologia de Redes usadas, treino, avaliação, etc.</p>
 
       </div>
       
