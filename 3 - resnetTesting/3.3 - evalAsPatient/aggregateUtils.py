@@ -123,6 +123,7 @@ def getROC(model, val_dataset):
     all_labels, all_scores = [], []
     val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
 
     model.eval()
     with torch.no_grad():
