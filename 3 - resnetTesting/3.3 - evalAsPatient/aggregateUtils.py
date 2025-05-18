@@ -127,7 +127,7 @@ def getROC(model, val_dataset):
 
     model.eval()
     with torch.no_grad():
-        for images, labels in val_loader:
+        for images, labels, patientID in val_loader:
             images = images.to(device)
             labels = labels.to(device)
 
