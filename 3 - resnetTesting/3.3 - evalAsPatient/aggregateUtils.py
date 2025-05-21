@@ -659,3 +659,165 @@ def getPatientID(s):
     return None  
 
 
+"""
+def getROCAggregateINCOMPLETE(model, dataset, aggregate_criteria="mean", threshold_base=None): 
+
+    all_labels, all_scores = [], []
+    loader = DataLoader(dataset, batch_size=32, shuffle=False)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+
+    # Needed for patient-wise classification
+    patient_prob = {}
+    patient_class = {}
+
+    # Used to store values after aggregation
+    patient_aggregate = {}
+
+    model.eval()
+    with torch.no_grad():
+        for images, labels, patient_id in loader:
+            images, labels = images.to(device), labels.to(device)
+
+            # Transform outputs to probabilities
+            outputs = model(images)
+
+            # Translate logits to probabilities using softmax
+            # and then chooses only values for Class 1 (0 or 1)
+
+            # This can only be done when computing mean or using
+            # the mean threshold as a base for the sweep
+            if aggregate_criteria == "mean" or (threshold_base is not None):
+                probs = F.softmax(outputs, dim=1)[:, 1] 
+            
+            # If there isn't a base threshold to start from,
+            # we need to classify based on highest likelyhood
+
+            # This code chooses the Class with highest probability,
+            # automatically classifying/transforming logits to 0 and 1.
+            # They are simply named "probs" for convenience, as 
+            # THEY AREN'T PROBABILITIES!!!
+            else: probs = torch.argmax(outputs, dim=1)
+
+
+            # Associate probabilities/values to dictionary for each patient
+            for pid, prob, label in zip(patient_id, probs.tolist(), labels.tolist()):
+                if pid not in patient_prob:
+                    patient_prob[pid] = []  # Initializes key:value pair if it doesn't exist
+                    patient_class[pid] = 0  # Sets classification as 0 until otherwise
+
+                patient_prob[pid].append(prob)  # Adds probability to list
+                
+                # Label aggregation condition
+                if label == 1: patient_class[pid] = 1 # Updates Classification
+    
+    # 2. After pulling every slice value for every patient, apply aggregate_criteria
+    # and evaluate the aggregated values using criteria-specific conditions
+    for id, prob_list in patient_prob.items():
+        if aggregate_criteria == "mean":
+            prob = bool(np.mean(prob_list))
+            patient_aggregate[id] = prob
+
+            # If larger -> True -> int -> 1
+            # If smaller -> False -> int -> 0
+            predicted = int(prob >= threshold)
+        
+        elif aggregate_criteria == "majority_vote":
+            ctr0, ctr1 = 0, 0
+            for prob in prob_list:
+                predicted = int(prob >= threshold)
+                if predicted == 1: ctr1 += 1
+                elif predicted == 0: ctr0 += 1
+                else: print("Error: Invalid prediction for patient", id)
+            
+            # From a medical standpoint, I decided 50/50 calls for more
+            # tests, as a prevention for false negatives in these cases
+            if (ctr1 >= ctr0): predicted == 1
+            else: predicted == 0
+
+        elif aggregate_criteria == "n_is_enough":
+            n_ctr = 0
+
+            # Absolute slice number
+            if isinstance(n, int):
+                for prob in prob_list:
+                    predicted = int(prob >= threshold)
+                    if predicted == 1: n_ctr += 1
+                    elif predicted != 0: print("Error: Invalid prediction for patient", id)
+
+                    # Early stopping
+                    if n_ctr == n: break
+
+                # Assigning correct values
+                if n_ctr >= n: predicted = 1
+                else: predicted = 0
+
+            # Relative slice ammount
+            elif isinstance(n, float):
+                size = len(prob_list)
+                for prob in prob_list:
+                    predicted = int(prob >= threshold)
+                    if predicted == 1: n_ctr += 1
+                    elif predicted != 0: print("Error: Invalid prediction for patient", id)
+
+                    # Early stopping
+                    if n_ctr >= n * size: break
+
+                # Assigning correct values
+                if n_ctr >= n * size: predicted = 1
+                else: predicted = 0
+
+                #if predicted == 1: print(" +++++ ", id, " | ", n_ctr, "out of", size, "slices!")
+                #else: print(" ----- ", id, " | ", n_ctr, "out of", size, "slices!")
+            
+            else: print("Error: Invalid n value for patient", id)
+
+                    
+
+        label = patient_class[id]
+
+        # Counters for metrics   
+        total += 1
+        if label == 0:
+            total_class_0 += 1
+            if predicted == label:
+                correct_class_0 += 1
+                correct += 1
+        elif label == 1:
+            total_class_1 += 1
+            if predicted == label:
+                correct_class_1 += 1
+                correct += 1
+
+        #  y_true, y_pred -> all_scores, all_labels
+        all_labels.append(label)
+        all_scores.append(predicted)
+
+    # Compute ROC curve
+    fpr, tpr, thresholds = roc_curve(all_labels, all_scores)
+    roc_auc = auc(fpr, tpr)
+    
+    # Compute distance to (0,1) for each point on the ROC curve
+    distances = np.sqrt((fpr)**2 + (1 - tpr)**2)
+
+    # Gets closest point to the perfect discriminator (0,1)
+    best_idx = np.argmin(distances)
+    best_threshold = thresholds[best_idx]
+
+    # ---------- Display and Results ---------- 
+
+    plt.figure()
+    plt.plot(fpr, tpr, label=f'ROC curve (area = {roc_auc:.2f})')
+    plt.plot([0, 1], [0, 1], 'k--')  # Diagonal line
+    plt.scatter(fpr[best_idx], tpr[best_idx], color='red', label=f'Best Threshold = {best_threshold:.2f}')
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver Operating Characteristic')
+    plt.legend(loc='lower right')
+    plt.show()
+
+    print("Area Under Curve:", roc_auc)
+    print("Best Threshold (closest to (0,1)):", best_threshold)
+
+    return best_threshold, roc_auc
+"""
