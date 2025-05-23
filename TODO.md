@@ -11,16 +11,16 @@ No dia 05/05:
 
 ## Fine-Tune da ResNet
 
- 1. Aplicar métodos de verificação de **rede com a melhor validation loss**, que substitui aquela que é exportada para o return. Posso precisar de **medidas de verificação de diferença entre melhoria da loss de treino e validação**, por exemplo, se a loss de treino estiver a baixar muito mais rapidamente do que a loss de validação ou se estiver com valores muito baixos então não pode ser considerada como a melhor. ✅(needs verification!!!)
+ 1. Aplicar métodos de verificação de **rede com a melhor validation loss**, que substitui aquela que é exportada para o return. Posso precisar de **medidas de verificação de diferença entre melhoria da loss de treino e validação**, por exemplo, se a loss de treino estiver a baixar muito mais rapidamente do que a loss de validação ou se estiver com valores muito baixos então não pode ser considerada como a melhor. ✅
  2. **Descongelar** grande parte das camadas da ResNet pode permitir atualização de pesos a um nível mais específico ao dataset em questão.
- 3. **Adicionar métricas** e melhorar a sua análise, bem como **fazer ROC e AUC para o teste** na fase de performance evaluation (threshold continua a ser feita com o split de validação)
+ 3. **Adicionar métricas** e melhorar a sua análise, bem como **fazer ROC e AUC para o teste** na fase de performance evaluation (threshold continua a ser feita com o split de validação)✅
  4. Fazer **resize dos tensors antes de aplicar as augemntations** pode implicar alguma perda de qualidade mas deve reduzir consideravelmente o tempo de execução do treino.✅
 
 ## Agregação de Resultados
 
 Consiste em combinar os resultados obtidos pela ResNet. Isto pode ser feito tanto a nível de resultados de probabilidades como resultado de features.
 
-### Tipo 1
+### Tipo 1 ✅
 
 A nível de **probabilidades**:
 
