@@ -1,3 +1,25 @@
+---
+title: "Guião Estágio (Fase Final)"
+author: "Rafael André"
+toc: true
+numbersections: true
+fontsize: 12pt
+geometry: a4paper
+mainfont: "Latin Modern Roman"
+toc-title: "Índice"
+include-before:
+- '`\newpage{}`{=latex}'
+---
+
+\thispagestyle{empty}
+\vfill
+\begin{center}
+\textit{INESC-TEC / FCUP | FEUP} \\
+Estágio Académico \\
+Ano Letivo 2024/2025
+\end{center}
+\newpage
+
 # Lista (Reunião 30/04)
 
 Representa a ordem pela qual penso fazer o sugerido.

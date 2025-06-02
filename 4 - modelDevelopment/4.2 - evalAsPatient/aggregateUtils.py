@@ -316,7 +316,7 @@ def evalResNet(resnet18, test_dataset, threshold):
 
 # ------------------------- Patient-Wise Classification (Probabilities) ------------------------- #
 
-def evalPatientProbResNet(resnet18, test_dataset, threshold, aggregate_criteria="mean", n=1,verbose=True):
+def evalPatientProbResNet(resnet18, test_dataset, threshold, aggregate_criteria="mean", n=1, ratio= 0.5, verbose=True):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
@@ -370,56 +370,24 @@ def evalPatientProbResNet(resnet18, test_dataset, threshold, aggregate_criteria=
             # If larger -> True -> int -> 1
             # If smaller -> False -> int -> 0
             predicted = int(prob >= threshold)
-        
-        elif aggregate_criteria == "majority_vote":
-            ctr0, ctr1 = 0, 0
+
+        # Absolute and Relative slice ammount thresholds (number of slices vs ratio)
+        elif aggregate_criteria == "ratio" or aggregate_criteria == "n_is_enough":
+            
+            # Obtain fibrosis ratio
+            ctr0,ctr1 = 0,0
             for prob in prob_list:
-                predicted = int(prob >= threshold)
-                if predicted == 1: ctr1 += 1
-                elif predicted == 0: ctr0 += 1
-                else: print("Error: Invalid prediction for patient", id)
-            
-            # From a medical standpoint, I decided 50/50 calls for more
-            # tests, as a prevention for false negatives in these cases
-            if (ctr1 >= ctr0): predicted = 1
-            else: predicted = 0
+                slice_class = int(prob >= threshold)
+                if slice_class == 1: ctr1 +=1
+                else: ctr0 +=1
 
-        elif aggregate_criteria == "n_is_enough":
-            n_ctr = 0
+            # If ratio of slices == 1 is >= threshold_ratio 
+            # OR if number of slices >= threshold_n 
+            # THEN patient_classification == 1
+            # 0 otherwise
+            predicted = int((ctr1/(ctr1+ctr0)) >= ratio) if aggregate_criteria == "ratio" else int(ctr1>=n)
 
-            # Absolute slice number
-            if isinstance(n, int):
-                for prob in prob_list:
-                    predicted = int(prob >= threshold)
-                    if predicted == 1: n_ctr += 1
-                    elif predicted != 0: print("Error: Invalid prediction for patient", id)
-
-                    # Early stopping
-                    if n_ctr == n: break
-
-                # Assigning correct values
-                if n_ctr >= n: predicted = 1
-                else: predicted = 0
-
-            # Relative slice ammount
-            elif isinstance(n, float):
-                size = len(prob_list)
-                for prob in prob_list:
-                    predicted = int(prob >= threshold)
-                    if predicted == 1: n_ctr += 1
-                    elif predicted != 0: print("Error: Invalid prediction for patient", id)
-
-                    # Early stopping
-                    if n_ctr >= n * size: break
-
-                # Assigning correct values
-                if n_ctr >= n * size: predicted = 1
-                else: predicted = 0
-
-                #if predicted == 1: print(" +++++ ", id, " | ", n_ctr, "out of", size, "slices!")
-                #else: print(" ----- ", id, " | ", n_ctr, "out of", size, "slices!")
-            
-            else: print("Error: Invalid n value for patient", id)
+        label = patient_class[id]
 
         # Counters for metrics   
         total += 1
@@ -500,7 +468,7 @@ def evalPatientProbResNet(resnet18, test_dataset, threshold, aggregate_criteria=
 # ------------------------------------------------ #
 
 
-def getROCAggregate(model, dataset, threshold, aggregate_criteria="mean", n=1, show_plot=True): 
+def getROCAggregateOLD(model, dataset, threshold, aggregate_criteria="mean", n=1, show_plot=True): 
 
     all_labels, all_scores = [], []
     loader = DataLoader(dataset, batch_size=32, shuffle=False)
@@ -654,6 +622,95 @@ def getROCAggregate(model, dataset, threshold, aggregate_criteria="mean", n=1, s
 
     return best_threshold, roc_auc
 
+
+# ------------------------------------------------ #
+
+def getROCAggregate(model, dataset, threshold, aggregate_criteria="mean", show_plot=True): 
+
+    all_labels, all_scores = [], []
+    loader = DataLoader(dataset, batch_size=32, shuffle=False)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+
+    # Needed for patient-wise classification
+    patient_prob = {}
+    patient_class = {}
+
+    model.eval()
+    with torch.no_grad():
+        for images, labels, patient_id in loader:
+            images, labels = images.to(device), labels.to(device)
+
+            # Transform outputs to probabilities
+            outputs = model(images)
+
+            # Translate logits to probabilities using softmax
+            # and then chooses only values for Class 1 (0 or 1)
+            probs = F.softmax(outputs, dim=1)[:, 1] 
+        
+            # Associate probabilities/values to dictionary for each patient
+            for pid, prob, label in zip(patient_id, probs.tolist(), labels.tolist()):
+                if pid not in patient_prob:
+                    patient_prob[pid] = []  # Initializes key:value pair if it doesn't exist
+                    patient_class[pid] = 0  # Sets classification as 0 until otherwise
+
+                patient_prob[pid].append(prob)  # Adds probability to list
+                
+                # Label aggregation condition
+                if label == 1: patient_class[pid] = 1 # Updates Classification
+    
+    # 2. After pulling every slice value for every patient, apply aggregate_criteria
+    # and evaluate the aggregated values using criteria-specific conditions
+    for id, prob_list in patient_prob.items():
+        if aggregate_criteria == "mean":
+            final_prob = np.mean(prob_list)
+        
+        # Absolute and Relative slice ammount thresholds (number of slices vs ratio)
+        elif aggregate_criteria == "ratio" or aggregate_criteria == "n_is_enough":
+            
+            # Obtain fibrosis ratio
+            ctr0,ctr1 = 0,0
+            for prob in prob_list:
+                slice_class = int(prob >= threshold)
+                if slice_class == 1: ctr1 +=1
+                else: ctr0 +=1
+
+            final_prob = (ctr1/(ctr1+ctr0)) if aggregate_criteria == "ratio" else ctr1
+
+        label = patient_class[id]
+
+        #  y_true, y_pred -> all_scores, all_labels
+        all_labels.append(label)
+        all_scores.append(final_prob)
+
+    # Compute ROC curve
+    fpr, tpr, thresholds = roc_curve(all_labels, all_scores)
+    roc_auc = auc(fpr, tpr)
+    
+    # Compute distance to (0,1) for each point on the ROC curve
+    distances = np.sqrt((fpr)**2 + (1 - tpr)**2)
+
+    # Gets closest point to the perfect discriminator (0,1)
+    best_idx = np.argmin(distances)
+    best_threshold = thresholds[best_idx]
+
+    # ---------- Display and Results ---------- 
+
+    if show_plot:
+        plt.figure()
+        plt.plot(fpr, tpr, label=f'ROC curve (area = {roc_auc:.2f})')
+        plt.plot([0, 1], [0, 1], 'k--')  # Diagonal line
+        plt.scatter(fpr[best_idx], tpr[best_idx], color='red', label=f'Best Threshold for method {aggregate_criteria} = {best_threshold:.2f}')
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title('Receiver Operating Characteristic')
+        plt.legend(loc='lower right')
+        plt.show()
+
+        print("Area Under Curve:", roc_auc)
+        print("Best Threshold (closest to (0,1)):", best_threshold)
+
+    return best_threshold, roc_auc
 
 
 
