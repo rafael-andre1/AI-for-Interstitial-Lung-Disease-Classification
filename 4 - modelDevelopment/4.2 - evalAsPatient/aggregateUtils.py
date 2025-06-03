@@ -37,6 +37,7 @@ from torchvision.io import decode_image
 
 # ------------------------- Main Class ------------------------- #
 
+
 class FibrosisDataset(Dataset):
     def __init__(self, annotations_file, img_dir, transform=None, target_transform=None, albumentations=None, gauss=False):
         self.img_labels = pd.read_csv(annotations_file)
@@ -45,6 +46,7 @@ class FibrosisDataset(Dataset):
         self.target_transform = target_transform
         self.albumentations = albumentations
         self.gauss = gauss
+        self.number_images = 0
 
     def __len__(self):
         return len(self.img_labels)
@@ -52,6 +54,7 @@ class FibrosisDataset(Dataset):
     def __getitem__(self, idx):
         # idx represents index
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
+        if not os.path.exists(img_path): print(f"Missing file: {img_path}")
         slice_id = self.img_labels.iloc[idx, 0]
         patient_id = getPatientID(slice_id)
 
