@@ -1,3 +1,22 @@
+# =============================================================================
+
+"""
+    ⚠️ WARNING: ARCHIVAL CLASS - DO NOT MODIFY ⚠️
+    -----------------------------------------------------------------------------
+    This is NOT the original implementation of the FibrosisDataset class.
+    It has been renamed to `FibrosisDatasetOriginal` for preservation.
+
+    Reason:
+    → A new version of `FibrosisDataset` has been created with updated logic
+    (e.g., 2.5D RGB stacking, different augmentation flow, etc.)
+    → This original version remains untouched for accurate experiment comparison.
+
+    Please make sure that if you wish to run 2D, then DON'T USE THESE UTILS,
+    or CHANGE THE CLASS NAMES (you can easily find them through Main Class banners).
+"""
+
+# =============================================================================
+
 from sklearn.metrics import f1_score, confusion_matrix, roc_curve, auc
 from scipy.ndimage import gaussian_filter
 import torch.nn.functional as F
@@ -6,6 +25,7 @@ import albumentations as A
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
+import warnings
 import pickle
 import random
 import copy
@@ -48,12 +68,93 @@ from matplotlib.lines import Line2D
 from sklearn.manifold import TSNE
 
 
-
-
-# ------------------------- Main Class ------------------------- #
-
+# ------------------------- Main Class (2.5D) ------------------------- #
 
 class FibrosisDataset(Dataset):
+    def __init__(self, annotations_file, img_dir, transform=None, target_transform=None, albumentations=None, gauss=False):
+        self.img_labels = pd.read_csv(annotations_file)
+        self.img_dir = img_dir
+        self.transform = transform
+        self.target_transform = target_transform
+        self.albumentations = albumentations
+        self.gauss = gauss
+        self.number_images = 0
+
+    def __len__(self):
+        return len(self.img_labels)
+    
+
+    def __getitem__(self, idx):
+        # idx represents index
+
+        # Locates each image in the csv file
+        img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
+        if not os.path.exists(img_path): print(f"Missing file: {img_path}")
+
+        # Fetches entire slice name
+        slice_id = self.img_labels.iloc[idx, 0]
+
+        # Parses patient ID for each slice
+        patient_id = getPatientID(slice_id)
+
+        # Get current slice info and class
+        curr_img = np.load(img_path)
+        label = self.img_labels.iloc[idx, 1]
+
+
+        # This function can fetch any additional slice
+        def load_image(i):
+            row = self.img_labels.iloc[i]
+            path = os.path.join(self.img_dir, row[0])
+            img = np.load(path).astype(np.float32)
+            label = row[1]
+            return img, label, row[0]
+
+        
+        # Fetches previous slice
+        if (idx > 0) and getPatientID(self.img_labels.iloc[idx - 1, 0]) == patient_id:
+            prev_img, _, _ = load_image(idx - 1)
+        else: prev_img = curr_img  # Duplicates slice if it's the first, uses as previous 
+        
+        # Try to get next slice
+        if (idx < len(self.img_labels) - 1) and getPatientID(self.img_labels.iloc[idx + 1, 0]) == patient_id:
+            next_img, _, _ = load_image(idx + 1)
+        else: next_img = curr_img  # Duplicates slice if it's the last, uses as next 
+        
+
+        # Finally, stacks them into RGB: shape → (3, H, W)
+        image = np.stack([prev_img, curr_img, next_img], axis=0)
+
+        # Reorder: shape → (H, W, 3)
+        image = np.transpose(image, (1, 2, 0))  # Now it looks like an RGB image
+
+        # Adds randomly selected gauss noise or blur
+        if self.gauss:
+            # Gaussian Noise
+            gauss_noise = image + np.random.normal(loc=0, scale=random.choice(range(10,40)), size=image.shape)
+            # Gaussian Blur
+            gauss_blur = gaussian_filter(image, sigma=(random.choice(range(10,16))/10)) 
+            # Random Choice
+            image = random.choice((gauss_noise,gauss_blur))
+
+        # Guarantee compatibility
+        if self.gauss or self.albumentations: image = image.astype(np.float32)
+
+        # Applies necessary ResNet input transformations
+        if self.transform:
+            image = self.transform(image)
+        if self.target_transform:
+            label = self.target_transform(label)
+        
+        return image, label, patient_id
+
+
+
+
+# ------------------------- Main Class (2D, changed name only in these Utils) ------------------------- #
+
+
+class FibrosisDatasetOriginal(Dataset):
     def __init__(self, annotations_file, img_dir, transform=None, target_transform=None, albumentations=None, gauss=False):
         self.img_labels = pd.read_csv(annotations_file)
         self.img_dir = img_dir
@@ -85,7 +186,7 @@ class FibrosisDataset(Dataset):
             gauss_noise = image + np.random.normal(loc=0, scale=random.choice(range(10,40)), size=image.shape)
             # Gaussian Blur
             gauss_blur = gaussian_filter(image, sigma=(random.choice(range(10,16))/10)) 
-            # Random choice
+            # Random Choice
             image = random.choice((gauss_noise,gauss_blur))
 
         # Guarantee compatibility
