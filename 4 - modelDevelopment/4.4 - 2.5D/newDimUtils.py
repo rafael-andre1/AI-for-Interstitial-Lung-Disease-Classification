@@ -79,6 +79,7 @@ dimension_choice = int(input("Would you like to use 2D (type 0) or 2.5D (type 1)
 
 # ------------------------- Main Class (2.5D) ------------------------- #
 
+"""
 if dimension_choice == 1:
     class FibrosisDataset(Dataset):
         def __init__(self, annotations_file, img_dir, transform=None, target_transform=None, albumentations=None, gauss=False):
@@ -212,7 +213,7 @@ elif dimension_choice == 0:
         
 else: print("INVALID CHOICE FOR 2D OR 2.5D!!!")
 
-
+"""
 # ------------------------- Main Training Loop ------------------------- #
 
 
