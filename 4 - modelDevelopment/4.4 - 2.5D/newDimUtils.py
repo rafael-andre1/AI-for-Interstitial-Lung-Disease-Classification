@@ -1329,6 +1329,277 @@ def distanceCriteriaEvolution(k_list, acc_list, f1_list):
     plt.tight_layout()
     plt.show()
 
+
+
+# ------------------------- Feature-Wise EXTRAS ------------------------- #
+
+def load_roi_files(roi_file_name):
+    # List to store all the ROIs
+    rois = []
+
+    # Open the ROI file for reading
+    with open(roi_file_name, 'r') as file:
+        roi = {}
+        while True:
+            # Read a line from the file
+            line = file.readline()
+            
+            # Stop if we reach the end of the file
+            if not line:
+                break
+
+            # Check and parse each line based on its prefix
+            if 'label:' in line:
+                roi['label'] = line.replace('label: ', '').strip()
+            elif 'slice_number:' in line:
+                roi['slice_number'] = float(line.replace('slice_number: ', '').strip())
+
+                # Append the parsed ROI to the list of ROIs
+                rois.append(roi)
+                roi = {}  # Reset for the next ROI
+
+    return rois
+
+# ------------------------------------------------ #
+
+
+def searchDiffManifest(folder, verbose=1):
+
+    target_labels = {"early_fibrosis", "bronchiectasis", "reticulation"}
+    manifest_dict = {label: {} for label in target_labels}
+    ctr=0
+
+    for root, dirs, files in os.walk(folder):
+        folder_name = os.path.basename(root)
+
+        for file in files:
+            if not file.endswith(".txt"):
+                continue
+
+            txt_file_path = os.path.join(root, file)
+            rois = load_roi_files(txt_file_path)
+
+            if not rois or not isinstance(rois[0], dict):
+                continue
+
+            if verbose == 1:
+                first_label = rois[0].get('label', None)
+                if first_label in target_labels:
+                    print(f"Searching in folder: {folder_name}")
+                    print(f"{file}\n")
+                    for d in rois:
+                        print(d)
+                        for key in d.keys(): 
+                            if "slice_number" in key: ctr+=1
+                    print("\n" + "="*50 + "\n\n")
+            else:
+                current_label = None
+                for roi in rois:
+                    if 'label' in roi and roi['label'] in target_labels:
+                        current_label = roi['label']
+
+                    if current_label and 'slice_number' in roi:
+                        slice_num = int(roi['slice_number'])
+
+                        # Insert into correct dictionary
+                        if folder_name not in manifest_dict[current_label]:
+                            manifest_dict[current_label][folder_name] = []
+
+                        manifest_dict[current_label][folder_name].append(slice_num)
+
+    if verbose != 1:
+        return manifest_dict
+
+    print(ctr)
+
+# ------------------------------------------------ #
+
+
+def manifestationDataframe(manifest_dict, df):
+
+    full_df = df
+    result_rows = []
+    slice_manifestation_map = {}  # To track manifestations per sliceID
+
+    # Step 2: Iterate through manifestations and patients
+    for manifestation, patients in manifest_dict.items():
+        for folder_name, slice_indexes in patients.items():
+            pseudo_patient_id = folder_name + "_"
+
+            # Step 2.1: Get all rows matching the pseudo_patient_id
+            matching_rows = full_df[full_df["SliceID"].str.contains(pseudo_patient_id, na=False)]
+
+
+            if matching_rows.empty:
+                print(f"⚠️ Warning: Folder '{folder_name}' not found in datasets.")
+                continue
+
+            # Matching rows are sequential 
+            matching_rows = matching_rows.reset_index(drop=True)
+
+            # Step 2.1.1: Convert slice indexes to row indexes (slice_number - 1)
+            target_indexes = set(s - 1 for s in slice_indexes)
+
+            filtered_rows = [
+                row for i, row in matching_rows.iterrows()
+                if i in target_indexes
+            ]
+
+
+            # Step 2.2: Add each match to the result list and track manifestations
+            for row in filtered_rows:
+                slice_id = row["SliceID"]
+                if slice_id not in slice_manifestation_map:
+                    slice_manifestation_map[slice_id] = set()
+
+                # Check if slice already has manifestations
+                if slice_manifestation_map[slice_id] and manifestation not in slice_manifestation_map[slice_id]:
+                    existing = slice_manifestation_map[slice_id]
+                    print(f"⚠️ Warning: SliceID '{slice_id}' has multiple manifestations: {existing} + '{manifestation}'")
+
+                slice_manifestation_map[slice_id].add(manifestation)
+
+                result_rows.append({
+                    "SliceID": slice_id,
+                    "Manifestation": manifestation
+                })
+
+    # Step 3: Return result as a DataFrame
+    return pd.DataFrame(result_rows)
+
+# ------------------------------------------------ #
+
+
+def plotTSNEManifest(train_val_features, train_val_labels, test_features=False, full_df=False, manifest_df=False, apply_pca=False, mask=False):
+    X_train_val = torch.stack(train_val_features).cpu().numpy()
+    y_train_val = np.array(train_val_labels)
+
+    if manifest_df is not False:
+        for _, row in manifest_df.iterrows():
+            slice_id = row["SliceID"]
+            manifestation = row["Manifestation"]
+            match_idx = full_df[full_df["SliceID"] == slice_id].index
+            if not match_idx.empty:
+                idx = match_idx[0]
+                if y_train_val[idx] == 1:
+                    if manifestation == "early_fibrosis":
+                        y_train_val[idx] = 3
+                    elif manifestation == "bronchiectasis":
+                        y_train_val[idx] = 4
+                    elif manifestation == "reticulation":
+                        y_train_val[idx] = 5
+                else: print(f"{slice_id} is not class 1!!!")
+
+    X, y = X_train_val, y_train_val
+
+    if test_features is not False:
+        X_test = torch.stack([f.view(-1) for f in test_features], dim=0).cpu().numpy()
+        y_test = np.full(len(X_test), 2)               
+
+        X = np.concatenate((X_train_val, X_test), axis=0)
+        y = np.concatenate((y_train_val, y_test), axis=0)
+    
+
+    if apply_pca:
+        pca = PCA(n_components=50)
+        X = pca.fit_transform(X)
+
+    tsne = TSNE(n_components=2, perplexity=30, init='pca', learning_rate='auto')
+    X_embedded = tsne.fit_transform(X)
+
+    # Assign colors for original plot
+    base_colors = np.array([
+        'green' if label == 0 else
+        'red' if label in [1, 3, 4, 5] else
+        'blue' if label == 2 else
+        'teal' for label in y
+    ])
+
+    # Assign extended colors for manifestation plot
+    extended_colors = np.array([
+        'green' if label == 0 else
+        'red' if label == 1 else
+        'blue' if label == 2 else
+        'violet' if label == 3 else
+        'purple' if label == 4 else
+        'maroon' for label in y
+    ])
+
+
+    if not mask:
+        # Plot side-by-side
+        fig, axes = plt.subplots(1, 2, figsize=(16, 7))
+        
+        # Left: Original
+        axes[0].scatter(X_embedded[:, 0], X_embedded[:, 1], c=base_colors, s=10)
+        axes[0].set_title("t-SNE of ResNet Features (Original)")
+        base_legend = [
+            Line2D([0], [0], marker='o', color='w', label='Class 0', markerfacecolor='green', markersize=8),
+            Line2D([0], [0], marker='o', color='w', label='Class 1', markerfacecolor='red', markersize=8)
+        ]
+        if test_features is not False:
+            base_legend.append(Line2D([0], [0], marker='o', color='w', label='Test', markerfacecolor='blue', markersize=8))
+        axes[0].legend(handles=base_legend, title="Classes")
+
+        # Right: With manifestations
+        axes[1].scatter(X_embedded[:, 0], X_embedded[:, 1], c=extended_colors, s=10)
+        axes[1].set_title("t-SNE with Manifestations")
+
+        ext_legend = [
+            Line2D([0], [0], marker='o', color='w', label='Healthy (0)', markerfacecolor='green', markersize=8),
+            Line2D([0], [0], marker='o', color='w', label='Fibrosis (1)', markerfacecolor='red', markersize=8),
+            Line2D([0], [0], marker='o', color='w', label='Early Fibrosis (3)', markerfacecolor='violet', markersize=8),
+            Line2D([0], [0], marker='o', color='w', label='Bronchiectasis (4)', markerfacecolor='purple', markersize=8),
+            Line2D([0], [0], marker='o', color='w', label='Reticulation (5)', markerfacecolor='maroon', markersize=8),
+        ]
+        axes[1].legend(handles=ext_legend, title="Detailed Classes")
+
+        if test_features is not False: 
+            ext_legend.append(Line2D([0], [0], marker='o', color='w', label='Test (2)', markerfacecolor='blue', markersize=8))
+    
+    else:
+        # Split into two groups: fibrosis (1) and manifestations (3, 4, 5)
+        fibrosis_only_mask = (y == 1)
+        manifestations_only_mask = np.isin(y, [3, 4, 5])
+
+        X_fibrosis = X_embedded[fibrosis_only_mask]
+        y_fibrosis = y[fibrosis_only_mask]
+
+        X_manifestations = X_embedded[manifestations_only_mask]
+        y_manifestations = y[manifestations_only_mask]
+
+        # Assign colors
+        fibrosis_colors = ['red' for _ in y_fibrosis]
+        manifestation_colors = [
+            'violet' if label == 3 else
+            'purple' if label == 4 else
+            'maroon' for label in y_manifestations
+        ]
+
+        # First plot: Fibrosis only
+        plt.figure(figsize=(8, 6))
+        plt.scatter(X_fibrosis[:, 0], X_fibrosis[:, 1], c=fibrosis_colors, s=10)
+        plt.title("t-SNE: Fibrosis Only (Label 1)")
+        plt.legend(handles=[
+            Line2D([0], [0], marker='o', color='w', label='Fibrosis (1)', markerfacecolor='red', markersize=8)
+        ], title="Class")
+        plt.tight_layout()
+        plt.show()
+
+        # Second plot: Manifestations only
+        plt.figure(figsize=(8, 6))
+        plt.scatter(X_manifestations[:, 0], X_manifestations[:, 1], c=manifestation_colors, s=10)
+        plt.title("t-SNE: Manifestations Only (Labels 3, 4, 5)")
+        plt.legend(handles=[
+            Line2D([0], [0], marker='o', color='w', label='Early Fibrosis (3)', markerfacecolor='violet', markersize=8),
+            Line2D([0], [0], marker='o', color='w', label='Bronchiectasis (4)', markerfacecolor='purple', markersize=8),
+            Line2D([0], [0], marker='o', color='w', label='Reticulation (5)', markerfacecolor='maroon', markersize=8),
+        ], title="Manifestations")
+
+
+    plt.tight_layout()
+    plt.show()
+
 # ------------------------- General Utility Functions ------------------------- #
 
 
