@@ -75,7 +75,7 @@ from sklearn.manifold import TSNE
 
 
 
-dimension_choice = int(input("Would you like to use 2D (type 0) or 2.5D (type 1)? "))
+#dimension_choice = int(input("Would you like to use 2D (type 0) or 2.5D (type 1)? "))
 
 # ------------------------- Main Class (2.5D) ------------------------- #
 
@@ -441,6 +441,14 @@ def evalResNet(resnet18, test_dataset, threshold):
     print("\n --------------------- \n")
     print("\nConfusion Matrix: \n", conf_mat)
 
+    return_list = [accuracy_class_0, accuracy_class_1, accuracy, weighted_accuracy,
+                   f1_macro, f1_weighted, f1_class_0, f1_class_1, conf_mat]
+    
+    for i in range(4): return_list[i] = return_list[i]/100
+
+    return return_list
+            
+
 
 
 
@@ -594,6 +602,13 @@ def evalPatientProbResNet(resnet18, test_dataset, threshold, aggregate_criteria=
         # Confusion matrix
         print("\n --------------------- \n")
         print("\nConfusion Matrix: \n", conf_mat)    
+
+        return_list = [accuracy_class_0, accuracy_class_1, accuracy, weighted_accuracy,
+                    f1_macro, f1_weighted, f1_class_0, f1_class_1, conf_mat]
+        
+        for i in range(4): return_list[i] = return_list[i]/100
+
+        return return_list
 
 # ------------------------------------------------ #
 
@@ -1307,6 +1322,13 @@ def featuresKNN_GPU(train_val_features, labels, test_features, test_labels, crit
     # Confusion matrix
     print("\n --------------------- \n")
     print("\nConfusion Matrix: \n", conf_mat)
+
+    return_list = [accuracy_class_0, accuracy_class_1, accuracy, weighted_accuracy,
+                    f1_macro, f1_weighted, f1_class_0, f1_class_1, conf_mat]
+    
+    for i in range(4): return_list[i] = return_list[i]/100
+
+    return return_list
 
 # ------------------------------------------------ #
 
