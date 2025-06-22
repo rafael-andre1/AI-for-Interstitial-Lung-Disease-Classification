@@ -75,8 +75,6 @@ from sklearn.manifold import TSNE
 
 
 
-#dimension_choice = int(input("Would you like to use 2D (type 0) or 2.5D (type 1)? "))
-
 # ------------------------- Main Class (2.5D) ------------------------- #
 
 """
@@ -1173,6 +1171,13 @@ def featuresKNN_CPU(train_val_features, labels, test_features, test_labels, crit
     # Confusion matrix
     print("\n --------------------- \n")
     print("\nConfusion Matrix: \n", conf_mat)
+
+    return_list = [accuracy_class_0, accuracy_class_1, accuracy, weighted_accuracy,
+                    f1_macro, f1_weighted, f1_class_0, f1_class_1, conf_mat]
+    
+    for i in range(4): return_list[i] = return_list[i]/100
+
+    return return_list
 
 # ------------------------------------------------ #
 
