@@ -73,7 +73,10 @@ from sklearn.decomposition import PCA
 from matplotlib.lines import Line2D
 from sklearn.manifold import TSNE
 
+# ------------ Plots ------------
 
+import seaborn as sns
+from matplotlib.colors import LinearSegmentedColormap
 
 # ------------------------- Main Class (2.5D) ------------------------- #
 
