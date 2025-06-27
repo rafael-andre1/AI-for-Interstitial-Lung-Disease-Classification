@@ -61,7 +61,6 @@ class FibrosisDataset(Dataset):
         self.target_transform = target_transform
         self.albumentations = albumentations
         self.gauss = gauss
-        self.number_images = 0
 
     def __len__(self):
         return len(self.img_labels)
@@ -69,7 +68,6 @@ class FibrosisDataset(Dataset):
     def __getitem__(self, idx):
         # idx represents index
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
-        if not os.path.exists(img_path): print(f"Missing file: {img_path}")
         slice_id = self.img_labels.iloc[idx, 0]
         patient_id = getPatientID(slice_id)
 
@@ -91,14 +89,16 @@ class FibrosisDataset(Dataset):
         # Guarantee compatibility
         if self.gauss or self.albumentations: image = image.astype(np.float32)
 
+        # Already has resize prior to augments
+        if self.albumentations:
+            stacked_aug = self.albumentations(image=image)
+            image = stacked_aug['image']
+
         # Applies necessary ResNet input transformations
         if self.transform:
             image = self.transform(image)
-        if self.target_transform:
-            label = self.target_transform(label)
-        
+
         return image, label, patient_id
-    
 
 
 
